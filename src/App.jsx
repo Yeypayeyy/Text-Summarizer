@@ -7,7 +7,7 @@ import SavedSummaries from './components/SavedSummaries';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: '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', // <-- GANTI DENGAN KUNCI API OPENROUTER ANDA!
+  apiKey: import.meta.env.VITE_APP_OPENROUTER_API_KEY, // Pastikan ini
   baseURL: "https://openrouter.ai/api/v1",
   dangerouslyAllowBrowser: true,
 });
