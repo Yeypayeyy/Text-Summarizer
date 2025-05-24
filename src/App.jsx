@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import SummarizerForm from './components/SummarizerForm';
-import SummaryOutput from './components/SummaryOutput';
-import HistoryList from './components/HistoryList';
-import SavedSummaries from './components/SavedSummaries';
+import React, { useState, useEffect } from "react";
+import SummarizerForm from "./components/SummarizerForm";
+import SummaryOutput from "./components/SummaryOutput";
+import HistoryList from "./components/HistoryList";
+import SavedSummaries from "./components/SavedSummaries";
 
-import OpenAI from 'openai';
+import OpenAI from "openai";
+console.log(import.meta.env.VITE_HALO_TEST);
+console.log(import.meta.env.VITE_APP_OPENROUTER_API_KEY);
 
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_APP_OPENROUTER_API_KEY, // Pastikan ini
@@ -19,36 +21,36 @@ const openai = new OpenAI({
 const AI_MODEL = "openai/gpt-3.5-turbo"; // <-- Coba ini atau model yang lebih kuat/multibahasa
 
 function App() {
-  const [currentSummary, setCurrentSummary] = useState('');
-  const [originalText, setOriginalText] = useState('');
+  const [currentSummary, setCurrentSummary] = useState("");
+  const [originalText, setOriginalText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
   const [savedSummaries, setSavedSummaries] = useState([]);
 
   useEffect(() => {
-    const storedHistory = localStorage.getItem('summarizerHistory');
+    const storedHistory = localStorage.getItem("summarizerHistory");
     if (storedHistory) {
       setHistory(JSON.parse(storedHistory));
     }
-    const storedSavedSummaries = localStorage.getItem('savedSummaries');
+    const storedSavedSummaries = localStorage.getItem("savedSummaries");
     if (storedSavedSummaries) {
       setSavedSummaries(JSON.parse(storedSavedSummaries));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('summarizerHistory', JSON.stringify(history));
+    localStorage.setItem("summarizerHistory", JSON.stringify(history));
   }, [history]);
 
   useEffect(() => {
-    localStorage.setItem('savedSummaries', JSON.stringify(savedSummaries));
+    localStorage.setItem("savedSummaries", JSON.stringify(savedSummaries));
   }, [savedSummaries]);
 
   const summarizeText = async (text) => {
     setLoading(true);
-    setError('');
-    setCurrentSummary('');
+    setError("");
+    setCurrentSummary("");
     setOriginalText(text);
 
     try {
@@ -57,12 +59,13 @@ function App() {
         messages: [
           {
             role: "system",
-            content: "Anda adalah asisten ringkasan teks. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya." // <-- Instruksi kunci untuk deteksi bahasa
+            content:
+              "Anda adalah asisten ringkasan teks. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya.", // <-- Instruksi kunci untuk deteksi bahasa
           },
           {
             role: "user",
-            content: `Tolong ringkas teks berikut ini. Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya:\n\n${text}` // <-- Penegasan di prompt user
-          }
+            content: `Tolong ringkas teks berikut ini. Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya:\n\n${text}`, // <-- Penegasan di prompt user
+          },
         ],
         temperature: 0.2, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
         max_tokens: 150,
@@ -79,13 +82,16 @@ function App() {
         };
         setHistory((prevHistory) => [newHistoryEntry, ...prevHistory]);
       } else {
-        setError('OpenRouter API tidak mengembalikan ringkasan.');
+        setError("OpenRouter API tidak mengembalikan ringkasan.");
       }
-
     } catch (err) {
       console.error("Error summarizing text with OpenRouter:", err);
-      setError(`Gagal meringkas teks: ${err.message || 'Terjadi kesalahan pada OpenRouter API.'}`);
-      setCurrentSummary('');
+      setError(
+        `Gagal meringkas teks: ${
+          err.message || "Terjadi kesalahan pada OpenRouter API."
+        }`
+      );
+      setCurrentSummary("");
     } finally {
       setLoading(false);
     }
@@ -100,14 +106,16 @@ function App() {
         date: new Date().toLocaleString(),
       };
       setSavedSummaries((prevSaved) => [...prevSaved, newSavedSummary]);
-      alert('Ringkasan berhasil disimpan!');
+      alert("Ringkasan berhasil disimpan!");
     } else {
-      alert('Tidak ada ringkasan untuk disimpan.');
+      alert("Tidak ada ringkasan untuk disimpan.");
     }
   };
 
   const deleteSavedSummary = (id) => {
-    setSavedSummaries((prevSaved) => prevSaved.filter(summary => summary.id !== id));
+    setSavedSummaries((prevSaved) =>
+      prevSaved.filter((summary) => summary.id !== id)
+    );
   };
 
   const clearHistory = () => {
@@ -120,7 +128,9 @@ function App() {
     <div className="min-h-screen bg-gray-100 p-4 font-sans">
       <header className="text-center mb-8">
         <h1 className="text-4xl font-bold text-blue-700">Text Summarizer AI</h1>
-        <p className="text-gray-600 mt-2">Ringkas teks Anda dengan cepat dan mudah!</p>
+        <p className="text-gray-600 mt-2">
+          Ringkas teks Anda dengan cepat dan mudah!
+        </p>
       </header>
 
       <main className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -132,12 +142,18 @@ function App() {
 
         <div className="col-span-1">
           <HistoryList history={history} onClearHistory={clearHistory} />
-          <SavedSummaries savedSummaries={savedSummaries} onDelete={deleteSavedSummary} />
+          <SavedSummaries
+            savedSummaries={savedSummaries}
+            onDelete={deleteSavedSummary}
+          />
         </div>
       </main>
 
       <footer className="text-center mt-10 text-gray-500">
-        <p>&copy; {new Date().getFullYear()} Text Summarizer AI. Dibuat dengan ❤️ dan React.</p>
+        <p>
+          &copy; {new Date().getFullYear()} Text Summarizer AI. Dibuat dengan ❤️
+          dan React.
+        </p>
       </footer>
     </div>
   );
