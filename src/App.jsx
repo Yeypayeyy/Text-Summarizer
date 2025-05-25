@@ -59,14 +59,14 @@ const summarizeText = async (text) => {
       messages: [
         {
           role: "system",
-          content: "Anda adalah asisten ringkasan teks yang sangat membantu. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. **Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya.** Jangan menerjemahkan jika tidak diminta. Fokus pada meringkas." // <-- Instruksi kunci yang dimodifikasi
+          content: "Anda adalah asisten ringkasan teks yang sangat membantu. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya. Jangan menerjemahkan jika tidak diminta. Fokus pada meringkas." // <-- Instruksi kunci yang dimodifikasi
         },
         {
           role: "user",
-          content: `Tolong ringkas teks berikut ini. **Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya.**\n\n${text}` // <-- Penegasan di prompt user
+          content: `Tolong ringkas teks berikut ini. Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya.\n\n${text}` // <-- Penegasan di prompt user
         }
       ],
-      temperature: 0.2, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
+      temperature: 0.5, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
       max_tokens: 150,
     });
 
