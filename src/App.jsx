@@ -79,11 +79,11 @@ function App() {
         messages: [
           {
             role: "system",
-            content: "Anda adalah asisten ringkasan teks yang sangat membantu. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya. Jangan menerjemahkan jika tidak diminta. Fokus pada meringkas."
+            content: "You are a helpful assistant that summarizes text. You will only answer with the summary of the text. Do not add any additional information or context."
           },
           {
             role: "user",
-            content: `Tolong ringkas teks berikut ini. Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya:\n\n${text}`
+            content: `Summarize the following text without any addition answer. Answer in the language the user speaks:\n\n${text}`
           }
         ],
         temperature: 0.2, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
