@@ -1,31 +1,30 @@
 import React, { useState } from 'react';
 
-// Menerima props baru: models, selectedModel, onModelChange
 function SummarizerForm({ onSubmit, loading, models, selectedModel, onModelChange }) {
   const [text, setText] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (text.trim()) { // Pastikan teks tidak kosong sebelum submit
+    if (text.trim()) {
       onSubmit(text);
-      setText(''); // Bersihkan textarea setelah submit
+      setText('');
     } else {
-      alert('Silakan masukkan teks yang ingin diringkas.');
+      alert('Please enter text to summarize.'); // Changed alert
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4"> {/* Mengatur jarak antar elemen form */}
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="model-select" className="block text-gray-700 text-sm font-bold mb-2">
-          Pilih Model AI:
+          Select AI Model: {/* Changed text */}
         </label>
         <select
           id="model-select"
           value={selectedModel}
           onChange={(e) => onModelChange(e.target.value)}
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-          disabled={loading} // Nonaktifkan saat loading
+          disabled={loading}
         >
           {models.map((model) => (
             <option key={model.id} value={model.id}>
@@ -37,7 +36,7 @@ function SummarizerForm({ onSubmit, loading, models, selectedModel, onModelChang
 
       <div>
         <label htmlFor="text" className="block text-gray-700 text-sm font-bold mb-2">
-          Masukkan Teks:
+          Enter Your Text: {/* Changed text */}
         </label>
         <textarea
           id="text"
@@ -45,9 +44,9 @@ function SummarizerForm({ onSubmit, loading, models, selectedModel, onModelChang
           onChange={(e) => setText(e.target.value)}
           rows="6"
           className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline placeholder-gray-400"
-          placeholder="Tulis atau tempel teks di sini..."
+          placeholder="Type or paste text here..." // Changed placeholder
           required
-          disabled={loading} // Nonaktifkan saat loading
+          disabled={loading}
         ></textarea>
       </div>
       <button
@@ -55,9 +54,9 @@ function SummarizerForm({ onSubmit, loading, models, selectedModel, onModelChang
         className={`w-full py-2 px-4 rounded-md text-white font-semibold transition duration-300 ${
           loading ? 'bg-blue-300 cursor-not-allowed opacity-70' : 'bg-blue-600 hover:bg-blue-700'
         } focus:outline-none focus:shadow-outline`}
-        disabled={loading} // Nonaktifkan tombol saat loading
+        disabled={loading}
       >
-        {loading ? 'Meringkas...' : 'Ringkas Teks'}
+        {loading ? 'Summarizing...' : 'Summarize Text'} {/* Changed text */}
       </button>
     </form>
   );

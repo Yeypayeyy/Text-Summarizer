@@ -4,30 +4,18 @@ import SummaryOutput from './components/SummaryOutput';
 import HistoryList from './components/HistoryList';
 import SavedSummaries from './components/SavedSummaries';
 
-// Import OpenAI SDK
 import OpenAI from 'openai';
 
-// Inisialisasi klien OpenAI untuk OpenRouter
-// Pastikan Anda telah mengatur VITE_APP_OPENROUTER_API_KEY di .env.local untuk lokal,
-// dan di Environment Variables Vercel untuk deployment.
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_APP_OPENROUTER_API_KEY,
   baseURL: "https://openrouter.ai/api/v1",
-  dangerouslyAllowBrowser: true, // HANYA UNTUK KEPERLUAN PEMBELAJARAN/LOKAL. JANGAN PRODUKSI!
+  dangerouslyAllowBrowser: true,
 });
 
-// --- DAFTAR MODEL AI YANG TERSEDIA ---
-// Anda bisa menyesuaikan daftar ini berdasarkan model yang Anda inginkan dari OpenRouter.
-// Kunjungi https://openrouter.ai/docs#models untuk daftar lengkap model, biaya, dan ketersediaan.
-// Disarankan menggunakan model yang kuat untuk deteksi bahasa dan ringkasan berkualitas.
-// PERHATIAN: GPT-3.5 dan Claude umumnya BERBAYAR di OpenRouter. Mistral 7B seringkali gratis.
 const AVAILABLE_MODELS = [
   { id: "openai/gpt-3.5-turbo", name: "GPT-3.5 Turbo (OpenAI)" },
   { id: "anthropic/claude-3-haiku", name: "Claude 3 Haiku (Anthropic)" },
   { id: "mistralai/mistral-7b-instruct", name: "Mistral 7B Instruct (MistralAI)" },
-  // Tambahkan model lain di sini jika diinginkan, contoh:
-  // { id: "mistralai/mixtral-8x7b-instruct-v0.1", name: "Mixtral 8x7B Instruct (MistralAI) - Lebih Kuat" },
-  // { id: "google/gemma-7b-it", name: "Gemma 7B Instruct (Google)" },
 ];
 
 function App() {
@@ -35,11 +23,10 @@ function App() {
   const [originalText, setOriginalText] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [history, setHistory] = useState([]); // Array of { original, summary, date }
-  const [savedSummaries, setSavedSummaries] = useState([]); // Array of { original, summary, date, id }
-  const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id); // Default ke model pertama
+  const [history, setHistory] = useState([]);
+  const [savedSummaries, setSavedSummaries] = useState([]);
+  const [selectedModel, setSelectedModel] = useState(AVAILABLE_MODELS[0].id);
 
-  // Load history and saved summaries from localStorage on initial render
   useEffect(() => {
     const storedHistory = localStorage.getItem('summarizerHistory');
     if (storedHistory) {
@@ -49,69 +36,66 @@ function App() {
     if (storedSavedSummaries) {
       setSavedSummaries(JSON.parse(storedSavedSummaries));
     }
-  }, []); // [] agar hanya berjalan sekali saat komponen mount
+  }, []);
 
-  // Save history to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('summarizerHistory', JSON.stringify(history));
-  }, [history]); // Dipanggil setiap kali history berubah
+  }, [history]);
 
-  // Save savedSummaries to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('savedSummaries', JSON.stringify(savedSummaries));
-  }, [savedSummaries]); // Dipanggil setiap kali savedSummaries berubah
+  }, [savedSummaries]);
 
   const summarizeText = async (text) => {
     setLoading(true);
     setError('');
     setCurrentSummary('');
-    setOriginalText(text); // Simpan teks asli untuk riwayat
+    setOriginalText(text);
 
     if (!text.trim()) {
-      setError('Teks tidak boleh kosong.');
+      setError('Text cannot be empty.'); // Changed from "Teks tidak boleh kosong."
       setLoading(false);
       return;
     }
 
     try {
       const response = await openai.chat.completions.create({
-        model: selectedModel, // Menggunakan model yang dipilih dari state
+        model: selectedModel,
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that summarizes text. You will only answer with the summary of the text. Do not add any additional information or context."
+            content: "You are a helpful assistant that summarizes text. You will only answer with the summary of the text. Do not add any additional information or context." // Changed system prompt
           },
           {
             role: "user",
-            content: `Summarize the following text without any addition answer. Answer in the language the user speaks:\n\n${text}`
+            content: `Summarize the following text without any addition answer.:\n\n${text}` // Changed user prompt
           }
         ],
-        temperature: 0.2, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
-        max_tokens: 200,  // Tingkatkan sedikit batas token untuk ringkasan yang lebih komprehensif
+        temperature: 0.2,
+        max_tokens: 200,
       });
 
-      const summary = response.choices[0]?.message?.content; // Gunakan optional chaining untuk keamanan
+      const summary = response.choices[0]?.message?.content;
 
       if (summary) {
         setCurrentSummary(summary);
         const newHistoryEntry = {
           original: text,
           summary: summary,
-          date: new Date().toLocaleString(), // Menyimpan tanggal dan waktu
+          date: new Date().toLocaleString(),
         };
-        setHistory((prevHistory) => [newHistoryEntry, ...prevHistory]); // Tambahkan ke awal riwayat
+        setHistory((prevHistory) => [newHistoryEntry, ...prevHistory]);
       } else {
-        setError('OpenRouter API tidak mengembalikan ringkasan. Coba lagi atau ganti model.');
+        setError('OpenRouter API did not return a summary. Please try again or change the model.'); // Changed error message
       }
 
     } catch (err) {
       console.error("Error summarizing text with OpenRouter:", err);
-      // Tangani berbagai jenis error API dengan pesan yang lebih informatif
-      let errorMessage = 'Terjadi kesalahan pada API OpenRouter.';
+      let errorMessage = 'An error occurred with the OpenRouter API.'; // Changed error message
       if (err.message) {
-        errorMessage = `Gagal meringkas teks: ${err.message}`;
+        errorMessage = `Failed to summarize text: ${err.message}`; // Changed error message
       } else if (err.status) {
-        errorMessage = `Gagal meringkas teks: Status API ${err.status}.`;
+        errorMessage = `Failed to summarize text: API status ${err.status}.`; // Changed error message
       }
       setError(errorMessage);
       setCurrentSummary('');
@@ -120,42 +104,35 @@ function App() {
     }
   };
 
-  // Fungsi untuk menyimpan ringkasan saat ini ke daftar ringkasan yang disimpan
-  // PASTIKAN FUNGSI INI BERADA DI DALAM KOMPONEN APP
   const saveCurrentSummary = () => {
     if (currentSummary && originalText) {
-      // Periksa apakah ringkasan sudah ada di savedSummaries untuk menghindari duplikasi
       const isAlreadySaved = savedSummaries.some(item => item.original === originalText && item.summary === currentSummary);
       if (isAlreadySaved) {
-        alert('Ringkasan ini sudah tersimpan!');
+        alert('This summary is already saved!'); // Changed alert
         return;
       }
 
       const newSavedSummary = {
-        id: Date.now(), // ID unik berdasarkan timestamp
+        id: Date.now(),
         original: originalText,
         summary: currentSummary,
         date: new Date().toLocaleString(),
       };
-      setSavedSummaries((prevSaved) => [...prevSaved, newSavedSummary]); // Tambahkan ke akhir daftar
-      alert('Ringkasan berhasil disimpan!');
+      setSavedSummaries((prevSaved) => [...prevSaved, newSavedSummary]);
+      alert('Summary successfully saved!'); // Changed alert
     } else {
-      alert('Tidak ada ringkasan yang bisa disimpan. Silakan ringkas teks terlebih dahulu.');
+      alert('No summary to save. Please summarize text first.'); // Changed alert
     }
   };
 
-  // Fungsi untuk menghapus ringkasan dari daftar yang disimpan berdasarkan ID
-  // PASTIKAN FUNGSI INI BERADA DI DALAM KOMPONEN APP
   const deleteSavedSummary = (id) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus ringkasan ini?")) {
+    if (window.confirm("Are you sure you want to delete this summary?")) { // Changed confirm
       setSavedSummaries((prevSaved) => prevSaved.filter(summary => summary.id !== id));
     }
   };
 
-  // Fungsi untuk menghapus semua riwayat ringkasan
-  // PASTIKAN FUNGSI INI BERADA DI DALAM KOMPONEN APP
   const clearHistory = () => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus semua riwayat? Tindakan ini tidak dapat dibatalkan.")) {
+    if (window.confirm("Are you sure you want to clear all history? This action cannot be undone.")) { // Changed confirm
       setHistory([]);
     }
   };
@@ -164,13 +141,11 @@ function App() {
     <div className="min-h-screen bg-gray-100 p-4 font-sans">
       <header className="text-center mb-8">
         <h1 className="text-4xl font-bold text-blue-700">Text Summarizer AI</h1>
-        <p className="text-gray-600 mt-2">Ringkas teks Anda dengan cepat dan mudah!</p>
+        <p className="text-gray-600 mt-2">Summarize your text quickly and easily!</p> {/* Changed text */}
       </header>
 
       <main className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Input & Output Section */}
         <div className="bg-white p-6 rounded-lg shadow-md col-span-1">
-          {/* Meneruskan props yang diperlukan ke SummarizerForm */}
           <SummarizerForm
             onSubmit={summarizeText}
             loading={loading}
@@ -182,16 +157,15 @@ function App() {
           <SummaryOutput summary={currentSummary} onSave={saveCurrentSummary} />
         </div>
 
-        {/* History & Saved Summaries Section */}
-        <div className="col-span-1 flex flex-col gap-8"> {/* Tambah flex-col dan gap untuk jarak antar komponen */}
+        <div className="col-span-1 flex flex-col gap-8">
           <HistoryList history={history} onClearHistory={clearHistory} />
           <SavedSummaries savedSummaries={savedSummaries} onDelete={deleteSavedSummary} />
         </div>
       </main>
 
       <footer className="text-center mt-10 text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} Text Summarizer AI. Dibuat dengan ❤️ dan React.</p>
-        <p>Didukung oleh OpenRouter API dan Tailwind CSS.</p>
+        <p>&copy; {new Date().getFullYear()} Text Summarizer AI. Built with ❤️ and React.</p> {/* Changed text */}
+        <p>Powered by OpenRouter API and Tailwind CSS.</p>
       </footer>
     </div>
   );
