@@ -47,55 +47,51 @@ function App() {
     localStorage.setItem("savedSummaries", JSON.stringify(savedSummaries));
   }, [savedSummaries]);
 
-  const summarizeText = async (text) => {
-    setLoading(true);
-    setError("");
-    setCurrentSummary("");
-    setOriginalText(text);
+const summarizeText = async (text) => {
+  setLoading(true);
+  setError('');
+  setCurrentSummary('');
+  setOriginalText(text);
 
-    try {
-      const response = await openai.chat.completions.create({
-        model: AI_MODEL,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Anda adalah asisten ringkasan teks. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya.", // <-- Instruksi kunci untuk deteksi bahasa
-          },
-          {
-            role: "user",
-            content: `Tolong ringkas teks berikut ini. Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya:\n\n${text}`, // <-- Penegasan di prompt user
-          },
-        ],
-        temperature: 0.2, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
-        max_tokens: 150,
-      });
+  try {
+    const response = await openai.chat.completions.create({
+      model: AI_MODEL, // AI_MODEL Anda saat ini adalah "openai/gpt-3.5-turbo"
+      messages: [
+        {
+          role: "system",
+          content: "Anda adalah asisten ringkasan teks yang sangat membantu. Tugas Anda adalah memberikan ringkasan yang ringkas dan akurat. **Deteksi bahasa dari teks yang diberikan dan berikan ringkasan dalam bahasa yang sama dengan teks aslinya.** Jangan menerjemahkan jika tidak diminta. Fokus pada meringkas." // <-- Instruksi kunci yang dimodifikasi
+        },
+        {
+          role: "user",
+          content: `Tolong ringkas teks berikut ini. **Pastikan ringkasan dalam bahasa yang sama dengan teks aslinya.**\n\n${text}` // <-- Penegasan di prompt user
+        }
+      ],
+      temperature: 0.2, // Turunkan temperature untuk ringkasan yang lebih faktual dan kurang kreatif
+      max_tokens: 150,
+    });
 
-      const summary = response.choices[0].message.content;
+    const summary = response.choices[0].message.content;
 
-      if (summary) {
-        setCurrentSummary(summary);
-        const newHistoryEntry = {
-          original: text,
-          summary: summary,
-          date: new Date().toLocaleString(),
-        };
-        setHistory((prevHistory) => [newHistoryEntry, ...prevHistory]);
-      } else {
-        setError("OpenRouter API tidak mengembalikan ringkasan.");
-      }
-    } catch (err) {
-      console.error("Error summarizing text with OpenRouter:", err);
-      setError(
-        `Gagal meringkas teks: ${
-          err.message || "Terjadi kesalahan pada OpenRouter API."
-        }`
-      );
-      setCurrentSummary("");
-    } finally {
-      setLoading(false);
+    if (summary) {
+      setCurrentSummary(summary);
+      const newHistoryEntry = {
+        original: text,
+        summary: summary,
+        date: new Date().toLocaleString(),
+      };
+      setHistory((prevHistory) => [newHistoryEntry, ...prevHistory]);
+    } else {
+      setError('OpenRouter API tidak mengembalikan ringkasan.');
     }
-  };
+
+  } catch (err) {
+    console.error("Error summarizing text with OpenRouter:", err);
+    setError(`Gagal meringkas teks: ${err.message || 'Terjadi kesalahan pada OpenRouter API.'}`);
+    setCurrentSummary('');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const saveCurrentSummary = () => {
     if (currentSummary && originalText) {
